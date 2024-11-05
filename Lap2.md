@@ -697,3 +697,124 @@
 - **BảngLương và GiaoDịch:** Bảng lương tạo ra giao dịch để gửi đến hệ thống ngân hàng, thể hiện rằng bảng lương quản lý các giao dịch ngân hàng liên quan đến thanh toán lương.
 
 ## **Code Java mô phỏng ca sử dụng "Maintain Timecard".**
+```java
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+class Employee {
+    private int id;
+    private String name;
+    private Timecard timecard;
+
+    public Employee(int id, String name) {
+        this.id = id;
+        this.name = name;
+        this.timecard = new Timecard(id);
+    }
+
+    public Timecard getTimecard() {
+        return timecard;
+    }
+}
+
+class Timecard {
+    private int employeeId;
+    private Date startDate;
+    private Date endDate;
+    private Map<String, Integer> chargeHours;  
+    private boolean isSubmitted;
+    private Date submittedDate;
+    private static final int MAX_HOURS_PER_DAY = 24;
+    private static final int MAX_TOTAL_HOURS = 40;  
+
+    public Timecard(int employeeId) {
+        this.employeeId = employeeId;
+        this.startDate = new Date();  
+        this.endDate = new Date();    
+        this.chargeHours = new HashMap<>();
+        this.isSubmitted = false;
+    }
+
+    public boolean addHours(String chargeNumber, int hours) {
+        if (hours > MAX_HOURS_PER_DAY) {
+            System.out.println("Error: Invalid hours entered (> 24 hours).");
+            return false;
+        }
+
+        int totalHours = chargeHours.values().stream().mapToInt(Integer::intValue).sum() + hours;
+        if (totalHours > MAX_TOTAL_HOURS) {
+            System.out.println("Error: Total hours exceed allowable limit.");
+            return false;
+        }
+
+        chargeHours.put(chargeNumber, chargeHours.getOrDefault(chargeNumber, 0) + hours);
+        return true;
+    }
+
+    public void submitTimecard() {
+        if (isSubmitted) {
+            System.out.println("Timecard has already been submitted.");
+            return;
+        }
+
+        this.submittedDate = new Date();
+        this.isSubmitted = true;
+        System.out.println("Timecard submitted successfully on " + submittedDate);
+    }
+
+    public boolean isSubmitted() {
+        return isSubmitted;
+    }
+
+    public void displayTimecard() {
+        System.out.println("Employee ID: " + employeeId);
+        System.out.println("Timecard Start Date: " + startDate);
+        System.out.println("Timecard End Date: " + endDate);
+        System.out.println("Hours worked per charge number:");
+        for (Map.Entry<String, Integer> entry : chargeHours.entrySet()) {
+            System.out.println("Charge Number: " + entry.getKey() + ", Hours: " + entry.getValue());
+        }
+    }
+}
+
+class ProjectManagementDatabase {
+    public static Map<String, String> getChargeNumbers() {
+        Map<String, String> chargeNumbers = new HashMap<>();
+        chargeNumbers.put("1001", "Project A");
+        chargeNumbers.put("1002", "Project B");
+        chargeNumbers.put("1003", "Project C");
+        return chargeNumbers;
+    }
+}
+
+public class MaintainTimecardDemo {
+    public static void main(String[] args) {
+        Employee employee = new Employee(1, "John Doe");
+
+       
+        Timecard timecard = employee.getTimecard();
+
+     
+        Map<String, String> chargeNumbers = ProjectManagementDatabase.getChargeNumbers();
+        System.out.println("Available charge numbers: " + chargeNumbers);
+
+       
+        System.out.println("Adding hours...");
+        timecard.addHours("1001", 8);
+        timecard.addHours("1002", 7);
+        timecard.addHours("1003", 5);
+
+       
+        System.out.println("\nCurrent Timecard:");
+        timecard.displayTimecard();
+
+        
+        System.out.println("\nSubmitting Timecard...");
+        timecard.submitTimecard();
+
+       
+        System.out.println("\nAttempting to resubmit...");
+        timecard.submitTimecard();
+    }
+}
